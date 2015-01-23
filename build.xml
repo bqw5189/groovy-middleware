@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+
+<project name="field-middleware" default="main" basedir=".">
+
+    <!-- Give user a chance to override without editing this file
+         (and without typing -D on each invocation) -->
+    <property environment="env"/>
+    <property file="middleware.ant.properties"/>
+
+    <!--
+         ===================================================================
+           Set the properties that control names and versions
+         ===================================================================
+    -->
+    <property name="Name" value="Field Middleware"/>
+    <property name="name" value="field-middleware"/>
+    <!-- this is the groupId of ant in the Maven repository -->
+    <property name="groupid" value="com/field/middleware/"/>
+
+    <!--
+         ===================================================================
+           Set the properties related to the source tree
+         ===================================================================
+    -->
+    <property name="src.dir" value="src"/>
+    <property name="java.dir" value="${src.dir}"/>
+    <property name="lib.dir" value="${web.dir}/webapp/WEB-INF/lib"/>
+
+    <!--
+         ===================================================================
+           Set the properties for the build area
+         ===================================================================
+    -->
+    <property name="build.dir" value="build"/>
+    <property name="build.classes" value="${build.dir}/classes"/>
+    <property name="build.lib" value="${build.dir}/lib"/>
+    <property name="build.javadocs" value="${build.dir}/javadocs"/>
+    <!-- the absolute path -->
+    <property name="manifest-version" value="1.9.5"/>
+
+    <!--
+         ===================================================================
+           Set the properties that control various build options
+         ===================================================================
+    -->
+    <property name="debug" value="true"/>
+    <property name="deprecation" value="false"/>
+    <property name="optimize" value="true"/>
+    <property name="javac.target" value="1.7"/>
+    <property name="javac.source" value="1.7"/>
+
+    <!--
+         ===================================================================
+           Set the paths used in the build
+         ===================================================================
+    -->
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+    </path>
+
+    <!--
+             ===================================================================
+               Main target - runs dist-lite by default
+             ===================================================================
+        -->
+    <target name="main"
+            description="--> creates a minimum distribution in ./dist"
+            depends="jars,javadocs">
+        <echo message="build success"/>
+    </target>
+
+    <!--
+       ===================================================================
+         Build the code
+       ===================================================================
+  -->
+    <target name="build"
+            description="--> compiles the source code">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.classes}"/>
+        <mkdir dir="${build.lib}"/>
+
+        <javac srcdir="${java.dir}"
+               includeantruntime="false"
+               destdir="${build.classes}"
+               debug="${debug}"
+               deprecation="${deprecation}"
+               target="${javac.target}"
+               source="${javac.source}"
+               optimize="${optimize}">
+            <classpath refid="classpath"/>
+
+
+        </javac>
+
+        <copy todir="${build.classes}">
+            <fileset dir="${java.dir}">
+                <include name="**/*.properties"/>
+                <include name="**/*.dtd"/>
+                <include name="**/*.xml"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${build.classes}"
+              overwrite="true" encoding="UTF-8">
+            <fileset dir="${java.dir}">
+                <include name="**/version.txt"/>
+                <include name="**/defaultManifest.mf"/>
+            </fileset>
+        </copy>
+
+    </target>
+
+
+    <!--
+           ===================================================================
+             Create the all of the Apache Ant jars
+           ===================================================================
+      -->
+    <target name="jars"
+            depends="build"
+            description="--> creates the Apache Ant jars">
+        <jar destfile="${build.lib}/${name}-${project.version}.jar"
+             basedir="${build.classes}">
+            <metainf dir="${build.dir}">
+                <include name="LICENSE.txt"/>
+                <include name="NOTICE.txt"/>
+            </metainf>
+
+            <manifest>
+                <section name="${groupid}">
+                    <attribute name="Extension-name"
+                               value="com.daosheng.field"/>
+                    <attribute name="Specification-Title"
+                               value="Field Core"/>
+                    <attribute name="Specification-Version"
+                               value="${manifest-version}"/>
+                    <attribute name="Specification-Vendor"
+                               value="Field Software Core"/>
+                    <attribute name="Implementation-Title"
+                               value="com.daosheng.field"/>
+                    <attribute name="Implementation-Version"
+                               value="${project.version}"/>
+                    <attribute name="Implementation-Vendor"
+                               value="DaoSheng Software Field"/>
+                </section>
+            </manifest>
+        </jar>
+
+        <copy todir="${web.dir}/webapp/WEB-INF/lib" overwrite="true">
+            <file name="${build.lib}/${name}-${project.version}.jar"/>
+        </copy>
+    </target>
+
+    <!--
+       ===================================================================
+         Creates the API documentation
+       ===================================================================
+  -->
+    <target name="javadocs"
+            description="--> creates the API documentation" unless="javadoc.notrequired">
+        <javadoc useexternalfile="yes"
+                 maxmemory="1000M"
+                 destdir="${build.javadocs}"
+                 author="true"
+                 version="true"
+                 charset="utf-8"
+                 locale="zh"
+                 windowtitle="${Name} API"
+                 doctitle="${Name}"
+                 failonerror="true">
+
+            <packageset dir="${java.dir}"/>
+
+            <classpath refid="classpath"/>
+
+            <fileset dir="${java.dir}">
+                <include name="**/*.java"/>
+                <exclude name="**/*.properties"/>
+            </fileset>
+
+        </javadoc>
+    </target>
+</project>
